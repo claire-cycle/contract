@@ -47,7 +47,7 @@ export default function SettingsPage() {
   } = useAiStore();
 
   const { customRpcs, customChains, setCustomRpc, removeCustomRpc, addCustomChain, removeCustomChain, updateCustomChain } = useChainStore();
-  const { theme, setTheme } = useSettingsStore();
+  const { theme, setTheme, etherscanApiKey, setEtherscanApiKey } = useSettingsStore();
 
   const [showApiKey, setShowApiKey] = useState(false);
   const [rpcInputs, setRpcInputs] = useState<Record<number, string>>(customRpcs);
@@ -239,6 +239,26 @@ export default function SettingsPage() {
               </Button>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Etherscan API Key */}
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            {t("settings.etherscanKey")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Input
+            type="password"
+            placeholder="Optional API key..."
+            value={etherscanApiKey}
+            onChange={(e) => setEtherscanApiKey(e.target.value)}
+            className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 font-mono"
+          />
+          <p className="text-zinc-500 text-xs">{t("settings.etherscanKeyHint")}</p>
         </CardContent>
       </Card>
 

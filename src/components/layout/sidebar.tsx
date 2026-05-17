@@ -10,6 +10,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Bell,
+  Database,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -26,6 +28,8 @@ const navItems = [
   { labelKey: "nav.contract", icon: FileCode, href: "/" },
   { labelKey: "nav.analyzer", icon: Search, href: "/analyzer" },
   { labelKey: "nav.calldata", icon: Hexagon, href: "/calldata-builder" },
+  { labelKey: "nav.events", icon: Bell, href: "/events" },
+  { labelKey: "nav.storage", icon: Database, href: "/storage" },
   { labelKey: "nav.history", icon: History, href: "/history" },
   { labelKey: "nav.settings", icon: Settings, href: "/settings" },
 ]

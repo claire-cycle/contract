@@ -12,6 +12,7 @@ export const en: Translations = {
   "nav.calldata": "Calldata Builder",
   "nav.history": "History",
   "nav.settings": "Settings",
+  "nav.events": "Event Logs",
 
   // Header
   "header.connectWallet": "Import Wallet",
@@ -237,6 +238,13 @@ export const en: Translations = {
   "toast.invalidHex": "Invalid hex data format (must start with 0x)",
   "toast.dataTooShort": "Data too short to decode",
   "toast.abiExported": "ABI JSON copied to clipboard",
+  "home.fetchAbi": "Fetch ABI",
+  "home.fetchingAbi": "Fetching...",
+  "toast.abiFetched": "ABI fetched from explorer",
+  "toast.abiFetchFailed": "Failed to fetch ABI",
+  "toast.abiNotVerified": "Contract source code not verified",
+  "settings.etherscanKey": "Etherscan API Key",
+  "settings.etherscanKeyHint": "Optional. Increases rate limit for ABI fetching.",
   "contract.favorite": "Favorite",
   "contract.unfavorite": "Unfavorite",
   "contract.favorites": "Favorites",
@@ -270,6 +278,25 @@ export const en: Translations = {
   "common.exportFile": "Export File",
   "toast.fileImported": "File imported",
   "toast.fileExported": "File exported",
+
+  // Events
+  "events.title": "Event Logs",
+  "events.description": "Query and decode contract events from the blockchain.",
+  "events.contractAddress": "Contract Address",
+  "events.pasteAbi": "Paste ABI (must include event definitions)",
+  "events.selectEvent": "Select Event",
+  "events.fromBlock": "From Block",
+  "events.toBlock": "To Block",
+  "events.query": "Query",
+  "events.querying": "Querying...",
+  "events.results": "Results",
+  "events.noResults": "No events found in the specified block range.",
+  "events.blockNumber": "Block",
+  "events.txHash": "Tx Hash",
+  "events.args": "Arguments",
+  "events.noEvents": "No events in ABI",
+  "events.noEventsDesc": "The ABI does not contain any event definitions.",
+  "toast.eventQueryFailed": "Event query failed",
 };
 
 // Chinese translations
@@ -280,6 +307,7 @@ export const zh: Translations = {
   "nav.calldata": "Calldata 构造器",
   "nav.history": "交易历史",
   "nav.settings": "设置",
+  "nav.events": "事件日志",
 
   // Header
   "header.connectWallet": "导入钱包",
@@ -505,6 +533,13 @@ export const zh: Translations = {
   "toast.invalidHex": "十六进制数据格式无效（必须以 0x 开头）",
   "toast.dataTooShort": "数据太短，无法解码",
   "toast.abiExported": "ABI JSON 已复制到剪贴板",
+  "home.fetchAbi": "获取 ABI",
+  "home.fetchingAbi": "获取中...",
+  "toast.abiFetched": "已从浏览器获取 ABI",
+  "toast.abiFetchFailed": "获取 ABI 失败",
+  "toast.abiNotVerified": "合约源代码未验证",
+  "settings.etherscanKey": "Etherscan API 密钥",
+  "settings.etherscanKeyHint": "可选。提高 ABI 获取的速率限制。",
   "contract.favorite": "收藏",
   "contract.unfavorite": "取消收藏",
   "contract.favorites": "收藏夹",
@@ -538,4 +573,23 @@ export const zh: Translations = {
   "common.exportFile": "导出文件",
   "toast.fileImported": "文件已导入",
   "toast.fileExported": "文件已导出",
+
+  // Events
+  "events.title": "事件日志",
+  "events.description": "从区块链查询和解码合约事件。",
+  "events.contractAddress": "合约地址",
+  "events.pasteAbi": "粘贴 ABI（须包含事件定义）",
+  "events.selectEvent": "选择事件",
+  "events.fromBlock": "起始区块",
+  "events.toBlock": "结束区块",
+  "events.query": "查询",
+  "events.querying": "查询中...",
+  "events.results": "结果",
+  "events.noResults": "在指定区块范围内未找到事件。",
+  "events.blockNumber": "区块",
+  "events.txHash": "交易哈希",
+  "events.args": "参数",
+  "events.noEvents": "ABI 中无事件",
+  "events.noEventsDesc": "ABI 中未包含任何事件定义。",
+  "toast.eventQueryFailed": "事件查询失败",
 };

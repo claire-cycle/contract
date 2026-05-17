@@ -21,6 +21,8 @@ import { useAiStore } from "@/stores/ai-store";
 import { AIGateway, type ParsedCallIntent } from "@/lib/ai";
 import { useFavoritesStore, type FavoriteContract } from "@/stores/favorites-store";
 import { openFile } from "@/lib/tauri";
+import { fetchAbiFromEtherscan } from "@/lib/abi/etherscan";
+import { useSettingsStore } from "@/stores/settings-store";
 
 export default function HomePage() {
   const [address, setAddress] = useState("");
@@ -30,6 +32,30 @@ export default function HomePage() {
   const chainConfig = getChainConfig(selectedChainId);
   const { t } = useLocaleStore();
   const { favorites, addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
+  const { etherscanApiKey } = useSettingsStore();
+  const [fetchingAbi, setFetchingAbi] = useState(false);
+
+  async function handleFetchAbi() {
+    if (!address.trim() || !/^0x[a-fA-F0-9]{40}$/.test(address.trim())) {
+      toast.error(t("toast.invalidAddress"));
+      return;
+    }
+    setFetchingAbi(true);
+    try {
+      const abiJson = await fetchAbiFromEtherscan(address.trim(), selectedChainId, etherscanApiKey || undefined);
+      setAbiInput(abiJson);
+      toast.success(t("toast.abiFetched"));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed";
+      if (msg.includes("not verified")) {
+        toast.error(t("toast.abiNotVerified"));
+      } else {
+        toast.error(t("toast.abiFetchFailed") + ": " + msg);
+      }
+    } finally {
+      setFetchingAbi(false);
+    }
+  }
 
   // If a contract is loaded, show the interaction view
   if (currentContract && abi.length > 0) {
@@ -141,13 +167,24 @@ export default function HomePage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="address" className="text-zinc-300">{t("home.contractAddress")}</Label>
-            <Input
-              id="address"
-              placeholder="0x..."
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 font-mono"
-            />
+            <div className="flex gap-2">
+              <Input
+                id="address"
+                placeholder="0x..."
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 font-mono"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleFetchAbi}
+                disabled={fetchingAbi || !address.trim()}
+                className="border-zinc-700 text-zinc-300 shrink-0"
+              >
+                {fetchingAbi ? t("home.fetchingAbi") : t("home.fetchAbi")}
+              </Button>
+            </div>
           </div>
 
           <Tabs defaultValue="paste" className="w-full">
