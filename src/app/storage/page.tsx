@@ -174,7 +174,7 @@ export default function StoragePage() {
         slot: slot.trim() as `0x${string}`,
       });
 
-      setResult(value);
+      setResult(value ?? null);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Failed to read storage slot"

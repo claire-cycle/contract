@@ -90,7 +90,7 @@ export function MethodForm({
     setExplaining(true);
     try {
       const gateway = new AIGateway();
-      const result = await gateway.explainAbi(
+      const explainResult = await gateway.explainAbi(
         {
           provider: aiStore.provider,
           apiKey: aiStore.apiKey,
@@ -101,7 +101,7 @@ export function MethodForm({
         method,
         result ?? undefined,
       );
-      setExplanation(result);
+      setExplanation(explainResult);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "AI explain failed");
     } finally {

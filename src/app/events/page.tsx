@@ -26,8 +26,8 @@ import { type Log, parseAbiItem, decodeEventLog, type AbiEvent, formatUnits } fr
 
 interface DecodedLog {
   blockNumber: bigint | null;
-  transactionHash: string;
-  transactionIndex: number;
+  transactionHash: string | null;
+  transactionIndex: number | null;
   logIndex: number | null;
   args: Record<string, unknown>;
 }
@@ -120,9 +120,6 @@ export default function EventsPage() {
       name: inp.name,
       type: inp.type as AbiEvent["inputs"][number]["type"],
       ...(inp.indexed !== undefined ? { indexed: inp.indexed } : {}),
-      ...(inp.components
-        ? { components: inp.components as AbiEvent["inputs"][number]["components"] }
-        : {}),
     }));
     return {
       type: "event" as const,
@@ -330,7 +327,7 @@ export default function EventsPage() {
               <Label className="text-zinc-300">{t("events.selectEvent")}</Label>
               <Select
                 value={selectedEventName}
-                onValueChange={setSelectedEventName}
+                onValueChange={(val) => val && setSelectedEventName(val)}
               >
                 <SelectTrigger className="w-full bg-zinc-800 border-zinc-700 text-white">
                   <SelectValue placeholder={t("events.selectEvent")} />
@@ -433,8 +430,9 @@ export default function EventsPage() {
               <div className="space-y-3">
                 {logs.map((log, idx) => {
                   const chainConfig = allChainConfigs[chainId];
-                  const explorerUrl = chainConfig?.blockExplorerUrl
-                    ? `${chainConfig.blockExplorerUrl}/tx/${log.transactionHash}`
+                  const txHash = log.transactionHash ?? "";
+                  const explorerUrl = chainConfig?.blockExplorerUrl && txHash
+                    ? `${chainConfig.blockExplorerUrl}/tx/${txHash}`
                     : "#";
 
                   return (
@@ -460,7 +458,7 @@ export default function EventsPage() {
                           rel="noopener noreferrer"
                           className="text-blue-400 hover:text-blue-300 text-xs font-mono transition-colors"
                         >
-                          {truncateHash(log.transactionHash)}
+                          {truncateHash(log.transactionHash ?? "unknown")}
                         </a>
                         <Separator orientation="vertical" className="h-4 bg-zinc-700" />
                         <span className="text-zinc-500 text-[10px]">
