@@ -1,65 +1,280 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { FileCode, Upload, Link as LinkIcon, BookOpen, Eye, Send, ArrowLeft, AlertTriangle } from "lucide-react";
+import { useContractStore } from "@/stores/contract-store";
+import { useChainStore } from "@/stores/chain-store";
+import { parseAbiMethods, getFunctionMethods, type AbiMethod } from "@/lib/abi/parser";
+import { getChainConfig } from "@/lib/web3";
+import { toast } from "sonner";
+import { MethodForm } from "@/components/contract/method-form";
+import { useLocaleStore } from "@/stores/locale-store";
+
+export default function HomePage() {
+  const [address, setAddress] = useState("");
+  const [abiInput, setAbiInput] = useState("");
+  const { currentContract, abi, setContract, setAbi, clear } = useContractStore();
+  const { selectedChainId } = useChainStore();
+  const chainConfig = getChainConfig(selectedChainId);
+  const { t } = useLocaleStore();
+
+  // If a contract is loaded, show the interaction view
+  if (currentContract && abi.length > 0) {
+    return <ContractInteractionView />;
+  }
+
+  function handleLoadContract() {
+    if (!address.trim()) {
+      toast.error(t("toast.enterAddress"));
+      return;
+    }
+    if (!/^0x[a-fA-F0-9]{40}$/.test(address.trim())) {
+      toast.error(t("toast.invalidAddress"));
+      return;
+    }
+
+    const parsedAbi: AbiMethod[] = abiInput.trim()
+      ? (() => {
+          try {
+            return parseAbiMethods(abiInput);
+          } catch (e) {
+            toast.error(t("toast.invalidAbi") + ": " + (e as Error).message);
+            return [] as AbiMethod[];
+          }
+        })()
+      : [];
+
+    if (abiInput.trim() && parsedAbi.length === 0 && abiInput.includes("[")) {
+      return;
+    }
+
+    setContract({
+      id: crypto.randomUUID(),
+      address: address.trim() as `0x${string}`,
+      chainId: selectedChainId as 1 | 42161 | 10 | 8453 | 137 | 56,
+      isVerified: parsedAbi.length > 0,
+      createdAt: Date.now(),
+    });
+    setAbi(parsedAbi);
+    toast.success(t("toast.contractLoaded"));
+  }
+
+  function handleLoadErc20() {
+    const sampleAbi = JSON.stringify([
+      { "name": "balanceOf", "type": "function", "inputs": [{ "name": "account", "type": "address" }], "outputs": [{ "name": "", "type": "uint256" }], "stateMutability": "view" },
+      { "name": "transfer", "type": "function", "inputs": [{ "name": "to", "type": "address" }, { "name": "amount", "type": "uint256" }], "outputs": [{ "name": "", "type": "bool" }], "stateMutability": "nonpayable" },
+      { "name": "approve", "type": "function", "inputs": [{ "name": "spender", "type": "address" }, { "name": "amount", "type": "uint256" }], "outputs": [{ "name": "", "type": "bool" }], "stateMutability": "nonpayable" },
+      { "name": "allowance", "type": "function", "inputs": [{ "name": "owner", "type": "address" }, { "name": "spender", "type": "address" }], "outputs": [{ "name": "", "type": "uint256" }], "stateMutability": "view" },
+      { "name": "totalSupply", "type": "function", "inputs": [], "outputs": [{ "name": "", "type": "uint256" }], "stateMutability": "view" },
+      { "name": "name", "type": "function", "inputs": [], "outputs": [{ "name": "", "type": "string" }], "stateMutability": "view" },
+      { "name": "symbol", "type": "function", "inputs": [], "outputs": [{ "name": "", "type": "string" }], "stateMutability": "view" },
+      { "name": "decimals", "type": "function", "inputs": [], "outputs": [{ "name": "", "type": "uint8" }], "stateMutability": "view" },
+    ]);
+    setAbiInput(sampleAbi);
+    toast.success(t("toast.erc20Loaded"));
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold text-white">{t("home.title")}</h1>
+        <p className="text-zinc-400 text-sm">
+          {t("home.description")}
+        </p>
+      </div>
+
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <FileCode className="h-5 w-5" />
+            {t("home.loadContract")}
+          </CardTitle>
+          <CardDescription className="text-zinc-400">
+            {t("home.loadContract")}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="address" className="text-zinc-300">{t("home.contractAddress")}</Label>
+            <Input
+              id="address"
+              placeholder="0x..."
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 font-mono"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+
+          <Tabs defaultValue="paste" className="w-full">
+            <TabsList className="bg-zinc-800 border-zinc-700">
+              <TabsTrigger value="paste" className="data-[state=active]:bg-zinc-700">
+                <Upload className="h-3 w-3 mr-1" /> {t("home.pasteAbi")}
+              </TabsTrigger>
+              <TabsTrigger value="sample" className="data-[state=active]:bg-zinc-700">
+                <BookOpen className="h-3 w-3 mr-1" /> {t("home.sample")}
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="paste" className="mt-3">
+              <Textarea
+                placeholder='[{"name": "balanceOf", "type": "function", ...}]'
+                value={abiInput}
+                onChange={(e) => setAbiInput(e.target.value)}
+                className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 font-mono text-xs min-h-[120px]"
+              />
+            </TabsContent>
+            <TabsContent value="sample" className="mt-3 space-y-2">
+              <p className="text-zinc-400 text-sm">{t("home.loadSampleAbi")}</p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handleLoadErc20} className="border-zinc-700 text-zinc-300">
+                  ERC-20
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <Button onClick={handleLoadContract} className="w-full" size="lg">
+            <LinkIcon className="h-4 w-4 mr-2" />
+            {t("home.loadContract")}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Contract Interaction View (shown when contract is loaded)
+// ---------------------------------------------------------------------------
+
+function ContractInteractionView() {
+  const { currentContract, abi, clear } = useContractStore();
+  const { selectedChainId } = useChainStore();
+  const chainConfig = getChainConfig(selectedChainId);
+  const { t } = useLocaleStore();
+
+  if (!currentContract) return null;
+
+  const { read, write } = getFunctionMethods(abi);
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="space-y-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={clear}
+          className="text-zinc-400 hover:text-white -ml-2"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          {t("contract.back")}
+        </Button>
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1 min-w-0">
+            <h1 className="text-xl font-bold text-white">{t("home.title")}</h1>
+            <p className="text-zinc-500 font-mono text-xs truncate">
+              {currentContract.address}
+            </p>
+          </div>
+          {chainConfig && (
+            <Badge variant="outline" className="border-zinc-700 text-zinc-300 shrink-0">
+              {chainConfig.name}
+            </Badge>
+          )}
         </div>
-      </main>
+      </div>
+
+      {/* Contract Info */}
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardContent className="pt-4">
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="space-y-1">
+              <span className="text-zinc-500 text-xs">{t("contract.address")}</span>
+              <p className="text-white font-mono text-xs break-all">{currentContract.address}</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-zinc-500 text-xs">{t("contract.chain")}</span>
+              <p className="text-white">{chainConfig?.name ?? `Chain ${selectedChainId}`}</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-zinc-500 text-xs">{t("contract.abiMethods")}</span>
+              <p className="text-white">{abi.length} {t("contract.total")} ({read.length} {t("contract.read").toLowerCase()}, {write.length} {t("contract.write").toLowerCase()})</p>
+            </div>
+            <div className="space-y-1">
+              <span className="text-zinc-500 text-xs">{t("contract.verified")}</span>
+              <p className="text-white">{currentContract.isVerified ? t("contract.yes") : t("contract.no")}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Methods Tabs */}
+      <Tabs defaultValue="read">
+        <TabsList className="bg-zinc-800 border-zinc-700">
+          <TabsTrigger value="read" className="data-[state=active]:bg-zinc-700 text-zinc-300">
+            <Eye className="h-3 w-3 mr-1" /> Read ({read.length})
+          </TabsTrigger>
+          <TabsTrigger value="write" className="data-[state=active]:bg-zinc-700 text-zinc-300">
+            <Send className="h-3 w-3 mr-1" /> Write ({write.length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="read" className="mt-4">
+          <ScrollArea className="h-[calc(100vh-360px)]">
+            {read.length === 0 ? (
+              <Card className="bg-zinc-900 border-zinc-800">
+                <CardContent className="py-8 text-center">
+                  <p className="text-zinc-500 text-sm">{t("contract.noReadMethods")}</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3 pr-4">
+                {read.map((method, i) => (
+                  <MethodForm
+                    key={`${method.name}-${i}`}
+                    method={method}
+                    contractAddress={currentContract.address}
+                    chainId={selectedChainId}
+                    isRead
+                  />
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="write" className="mt-4">
+          <ScrollArea className="h-[calc(100vh-360px)]">
+            {write.length === 0 ? (
+              <Card className="bg-zinc-900 border-zinc-800">
+                <CardContent className="py-8 text-center">
+                  <p className="text-zinc-500 text-sm">{t("contract.noWriteMethods")}</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3 pr-4">
+                {write.map((method, i) => (
+                  <MethodForm
+                    key={`${method.name}-${i}`}
+                    method={method}
+                    contractAddress={currentContract.address}
+                    chainId={selectedChainId}
+                    isRead={false}
+                  />
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
