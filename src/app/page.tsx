@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileCode, Upload, Link as LinkIcon, BookOpen, Eye, Send, ArrowLeft, AlertTriangle } from "lucide-react";
+import { FileCode, Upload, Link as LinkIcon, BookOpen, Eye, Send, ArrowLeft, AlertTriangle, Sparkles } from "lucide-react";
 import { useContractStore } from "@/stores/contract-store";
 import { useChainStore } from "@/stores/chain-store";
 import { parseAbiMethods, getFunctionMethods, type AbiMethod } from "@/lib/abi/parser";
@@ -17,6 +17,8 @@ import { getChainConfig } from "@/lib/web3";
 import { toast } from "sonner";
 import { MethodForm } from "@/components/contract/method-form";
 import { useLocaleStore } from "@/stores/locale-store";
+import { useAiStore } from "@/stores/ai-store";
+import { AIGateway, type ParsedCallIntent } from "@/lib/ai";
 
 export default function HomePage() {
   const [address, setAddress] = useState("");
@@ -197,10 +199,44 @@ function ContractInteractionView() {
   const { selectedChainId } = useChainStore();
   const chainConfig = getChainConfig(selectedChainId);
   const { t } = useLocaleStore();
+  const aiStore = useAiStore();
+  const [nlInput, setNlInput] = useState("");
+  const [parsedIntent, setParsedIntent] = useState<ParsedCallIntent | null>(null);
+  const [parsing, setParsing] = useState(false);
 
   if (!currentContract) return null;
 
   const { read, write } = getFunctionMethods(abi);
+
+  async function handleParseNL() {
+    if (!nlInput.trim()) return;
+    if (!aiStore.apiKey && aiStore.provider !== "ollama") {
+      toast.error(t("contract.configureAiFirst"));
+      return;
+    }
+    setParsing(true);
+    try {
+      const gateway = new AIGateway();
+      const result = await gateway.parseNaturalLanguage(
+        {
+          provider: aiStore.provider,
+          apiKey: aiStore.apiKey,
+          baseUrl: aiStore.baseUrl,
+          ollamaUrl: aiStore.ollamaUrl,
+          modelId: aiStore.modelId,
+        },
+        nlInput,
+      );
+      setParsedIntent(result);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Parse failed");
+    } finally {
+      setParsing(false);
+    }
+  }
+
+  const allMethods = [...read, ...write];
+  const methodInAbi = parsedIntent ? allMethods.find(m => m.name === parsedIntent.methodName) : null;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -251,6 +287,60 @@ function ContractInteractionView() {
               <p className="text-white">{currentContract.isVerified ? t("contract.yes") : t("contract.no")}</p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Natural Language Input */}
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-white flex items-center gap-2 text-sm">
+            <Sparkles className="h-4 w-4 text-violet-400" />
+            {t("contract.nlParsedIntent")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex gap-2">
+            <Input
+              placeholder={t("contract.nlPrompt")}
+              value={nlInput}
+              onChange={(e) => setNlInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleParseNL()}
+              className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 text-sm"
+            />
+            <Button
+              size="sm"
+              onClick={handleParseNL}
+              disabled={parsing || !nlInput.trim()}
+              className="bg-violet-600 hover:bg-violet-700 text-white shrink-0"
+            >
+              {parsing ? <span className="animate-pulse">{t("contract.nlParsing")}</span> : t("contract.nlParse")}
+            </Button>
+          </div>
+          {parsedIntent && (
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-zinc-500">{t("contract.nlMethodName")}:</span>
+                <span className="text-white font-mono">{parsedIntent.methodName}</span>
+                <Badge variant="outline" className={`text-[10px] ${methodInAbi ? "border-emerald-500/30 text-emerald-400" : "border-amber-500/30 text-amber-400"}`}>
+                  {methodInAbi ? t("contract.nlMethodFound") : t("contract.nlMethodNotFound")}
+                </Badge>
+              </div>
+              {parsedIntent.params.length > 0 && (
+                <div>
+                  <span className="text-zinc-500">{t("contract.nlParams")}:</span>
+                  <ul className="list-disc list-inside text-zinc-300 mt-1">
+                    {parsedIntent.params.map((p, i) => (
+                      <li key={i}><span className="font-mono text-emerald-400">{p.name}</span> ({p.type}): {p.value}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="text-zinc-500">{parsedIntent.originalIntent}</div>
+              <Badge variant="outline" className="border-zinc-600 text-zinc-400 text-[10px]">
+                Confidence: {parsedIntent.confidence}
+              </Badge>
+            </div>
+          )}
         </CardContent>
       </Card>
 

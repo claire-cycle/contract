@@ -22,6 +22,7 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import type { AbiMethod } from "@/lib/abi";
 import { getPublicClient } from "@/lib/web3";
@@ -30,6 +31,8 @@ import { useLocaleStore } from "@/stores/locale-store";
 import { useChainStore } from "@/stores/chain-store";
 import { useWalletStore } from "@/stores/wallet-store";
 import { useHistoryStore } from "@/stores/history-store";
+import { useAiStore } from "@/stores/ai-store";
+import { AIGateway, type AbiExplanation } from "@/lib/ai";
 import { createWalletClient, http, type Hash } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { getAllChainConfigs } from "@/lib/web3";
@@ -72,6 +75,69 @@ export function MethodForm({
   const [txHash, setTxHash] = useState<string | null>(null);
 
   const isPayable = method.stateMutability === "payable";
+  const aiStore = useAiStore();
+
+  // AI explain state
+  const [explanation, setExplanation] = useState<AbiExplanation | null>(null);
+  const [explaining, setExplaining] = useState(false);
+
+  const handleExplain = useCallback(async () => {
+    if (!aiStore.apiKey && aiStore.provider !== "ollama") {
+      toast.error(t("contract.configureAiFirst"));
+      return;
+    }
+    setExplaining(true);
+    try {
+      const gateway = new AIGateway();
+      const result = await gateway.explainAbi(
+        {
+          provider: aiStore.provider,
+          apiKey: aiStore.apiKey,
+          baseUrl: aiStore.baseUrl,
+          ollamaUrl: aiStore.ollamaUrl,
+          modelId: aiStore.modelId,
+        },
+        method,
+        result ?? undefined,
+      );
+      setExplanation(result);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "AI explain failed");
+    } finally {
+      setExplaining(false);
+    }
+  }, [aiStore, method, result, t]);
+
+  // Error diagnosis state
+  const [diagnosis, setDiagnosis] = useState<{ errorType: string; rootCause: string; suggestedFixes: string[]; confidence: string } | null>(null);
+  const [diagnosing, setDiagnosing] = useState(false);
+
+  const handleDiagnoseError = useCallback(async (errorMessage: string) => {
+    if (!aiStore.apiKey && aiStore.provider !== "ollama") {
+      toast.error(t("contract.configureAiFirst"));
+      return;
+    }
+    setDiagnosing(true);
+    try {
+      const gateway = new AIGateway();
+      const diag = await gateway.diagnoseError(
+        {
+          provider: aiStore.provider,
+          apiKey: aiStore.apiKey,
+          baseUrl: aiStore.baseUrl,
+          ollamaUrl: aiStore.ollamaUrl,
+          modelId: aiStore.modelId,
+        },
+        errorMessage,
+        `Contract: ${contractAddress}, Method: ${method.name}, Chain: ${chainId}`,
+      );
+      setDiagnosis(diag);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Diagnosis failed");
+    } finally {
+      setDiagnosing(false);
+    }
+  }, [aiStore, contractAddress, method.name, chainId, t]);
 
   function handleInputChange(name: string, value: string) {
     setInputs((prev) => ({ ...prev, [name]: value }));
@@ -329,10 +395,21 @@ export function MethodForm({
           {method.name}
           <Badge
             variant="outline"
-            className="border-zinc-700 text-zinc-400 text-[10px] ml-auto"
+            className="border-zinc-700 text-zinc-400 text-[10px]"
           >
             {method.stateMutability}
           </Badge>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleExplain}
+            disabled={explaining}
+            className="ml-auto h-6 w-6 p-0 text-violet-400 hover:text-violet-300"
+            title={t("contract.aiExplain")}
+          >
+            {explaining ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -426,6 +503,19 @@ export function MethodForm({
               <pre className="bg-zinc-950 border border-zinc-800 rounded-md p-3 text-xs text-emerald-400 font-mono whitespace-pre-wrap break-all max-h-48 overflow-auto">
                 {result}
               </pre>
+              {result.startsWith("Error:") && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDiagnoseError(result)}
+                  disabled={diagnosing}
+                  className="border-violet-500/30 text-violet-400 hover:bg-violet-500/10 h-7 text-xs"
+                >
+                  {diagnosing ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
+                  {t("contract.aiDiagnose")}
+                </Button>
+              )}
             </div>
           </>
         )}
@@ -591,6 +681,16 @@ export function MethodForm({
                       <span className="text-red-300 text-xs font-medium">
                         {t("contract.txFailed")}
                       </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDiagnoseError("Transaction failed")}
+                        disabled={diagnosing}
+                        className="h-5 w-5 p-0 text-violet-400 hover:text-violet-300 ml-1"
+                      >
+                        {diagnosing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                      </Button>
                     </>
                   )}
                 </div>
@@ -604,6 +704,100 @@ export function MethodForm({
                 )}
               </div>
             )}
+          </>
+        )}
+        {/* AI Explanation */}
+        {explanation && (
+          <>
+            <Separator className="bg-zinc-800" />
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-violet-400 text-xs font-medium">
+                <Sparkles className="h-3.5 w-3.5" />
+                {t("contract.aiExplain")}
+              </div>
+              <div className="space-y-2 text-xs">
+                <div>
+                  <span className="text-zinc-500">{t("contract.description")}:</span>{" "}
+                  <span className="text-zinc-300">{explanation.description}</span>
+                </div>
+                <div>
+                  <span className="text-zinc-500">{t("contract.methodType")}:</span>{" "}
+                  <span className="text-zinc-300">{explanation.methodType}</span>
+                </div>
+                {explanation.inputs.length > 0 && (
+                  <div>
+                    <span className="text-zinc-500">{t("contract.inputs")}:</span>
+                    <ul className="list-disc list-inside text-zinc-300 mt-1 space-y-0.5">
+                      {explanation.inputs.map((inp, i) => (
+                        <li key={i}><span className="text-emerald-400 font-mono">{inp.name}</span> ({inp.type}): {inp.explanation}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {explanation.outputs.length > 0 && (
+                  <div>
+                    <span className="text-zinc-500">{t("contract.outputs")}:</span>
+                    <ul className="list-disc list-inside text-zinc-300 mt-1 space-y-0.5">
+                      {explanation.outputs.map((out, i) => (
+                        <li key={i}><span className="text-emerald-400 font-mono">{out.name}</span> ({out.type}): {out.explanation}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {explanation.usageExample && (
+                  <div>
+                    <span className="text-zinc-500">{t("contract.usageExample")}:</span>
+                    <pre className="bg-zinc-950 border border-zinc-800 rounded p-2 mt-1 text-emerald-400 font-mono text-[11px] whitespace-pre-wrap">{explanation.usageExample}</pre>
+                  </div>
+                )}
+                {explanation.returnInterpretation && (
+                  <div>
+                    <span className="text-zinc-500">{t("contract.returnInterpretation")}:</span>{" "}
+                    <span className="text-zinc-300">{explanation.returnInterpretation}</span>
+                  </div>
+                )}
+                {explanation.commonPitfalls && (
+                  <div>
+                    <span className="text-zinc-500">{t("contract.commonPitfalls")}:</span>{" "}
+                    <span className="text-zinc-300">{explanation.commonPitfalls}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* AI Error Diagnosis */}
+        {diagnosis && (
+          <>
+            <Separator className="bg-zinc-800" />
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-violet-400 text-xs font-medium">
+                <Sparkles className="h-3.5 w-3.5" />
+                {t("contract.aiDiagnose")}
+              </div>
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-zinc-500">{t("contract.errorType")}:</span>
+                  <Badge variant="outline" className="border-amber-500/30 text-amber-400 text-[10px]">{diagnosis.errorType}</Badge>
+                </div>
+                <div>
+                  <span className="text-zinc-500">{t("contract.rootCause")}:</span>{" "}
+                  <span className="text-zinc-300">{diagnosis.rootCause}</span>
+                </div>
+                {diagnosis.suggestedFixes.length > 0 && (
+                  <div>
+                    <span className="text-zinc-500">{t("contract.suggestedFixes")}:</span>
+                    <ul className="list-disc list-inside text-zinc-300 mt-1 space-y-0.5">
+                      {diagnosis.suggestedFixes.map((fix, i) => <li key={i}>{fix}</li>)}
+                    </ul>
+                  </div>
+                )}
+                <Badge variant="outline" className="border-zinc-600 text-zinc-400 text-[10px]">
+                  Confidence: {diagnosis.confidence}
+                </Badge>
+              </div>
+            </div>
           </>
         )}
       </CardContent>
