@@ -173,6 +173,10 @@ export const en: Translations = {
   "settings.chainNativeSymbol": "Native Token Symbol",
   "settings.chainNativeName": "Native Token Name",
   "settings.chainColor": "Color",
+  "settings.theme": "Theme",
+  "settings.themeDark": "Dark",
+  "settings.themeLight": "Light",
+  "settings.themeSystem": "System",
 
   // Wallet
   "wallet.imported": "Wallet",
@@ -190,6 +194,8 @@ export const en: Translations = {
   "toast.enterAddress": "Please enter a contract address",
   "toast.invalidAbi": "Invalid ABI format",
   "toast.erc20Loaded": "ERC-20 ABI loaded",
+  "toast.erc721Loaded": "ERC-721 ABI loaded",
+  "toast.erc1155Loaded": "ERC-1155 ABI loaded",
   "toast.analysisComplete": "Analysis complete",
   "toast.analysisFailed": "Failed to analyze bytecode",
   "toast.aiAnalysisComplete": "AI analysis complete",
@@ -377,6 +383,10 @@ export const zh: Translations = {
   "settings.chainNativeSymbol": "原生代币符号",
   "settings.chainNativeName": "原生代币名称",
   "settings.chainColor": "颜色",
+  "settings.theme": "主题",
+  "settings.themeDark": "深色",
+  "settings.themeLight": "浅色",
+  "settings.themeSystem": "跟随系统",
 
   // Wallet
   "wallet.imported": "钱包",
@@ -394,6 +404,8 @@ export const zh: Translations = {
   "toast.enterAddress": "请输入合约地址",
   "toast.invalidAbi": "ABI 格式无效",
   "toast.erc20Loaded": "已加载 ERC-20 ABI",
+  "toast.erc721Loaded": "已加载 ERC-721 ABI",
+  "toast.erc1155Loaded": "已加载 ERC-1155 ABI",
   "toast.analysisComplete": "分析完成",
   "toast.analysisFailed": "字节码分析失败",
   "toast.aiAnalysisComplete": "AI 分析完成",

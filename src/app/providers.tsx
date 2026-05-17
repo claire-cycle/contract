@@ -6,6 +6,7 @@ import { config } from "@/lib/web3";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AppLayout from "@/components/layout/app-layout";
+import { ThemeProvider } from "@/components/shared/theme-provider";
 import { useState } from "react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -14,10 +15,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <WagmiProvider config={config}>
-        <TooltipProvider>
-          <AppLayout>{children}</AppLayout>
-          <Toaster richColors position="bottom-right" duration={2500} closeButton />
-        </TooltipProvider>
+        <ThemeProvider>
+          <TooltipProvider>
+            <AppLayout>{children}</AppLayout>
+            <Toaster richColors position="bottom-right" duration={2500} closeButton />
+          </TooltipProvider>
+        </ThemeProvider>
       </WagmiProvider>
     </QueryClientProvider>
   );

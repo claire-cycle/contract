@@ -82,6 +82,38 @@ export default function HomePage() {
     toast.success(t("toast.erc20Loaded"));
   }
 
+  function handleLoadErc721() {
+    const sampleAbi = JSON.stringify([
+      { "name": "balanceOf", "type": "function", "inputs": [{ "name": "owner", "type": "address" }], "outputs": [{ "name": "", "type": "uint256" }], "stateMutability": "view" },
+      { "name": "ownerOf", "type": "function", "inputs": [{ "name": "tokenId", "type": "uint256" }], "outputs": [{ "name": "", "type": "address" }], "stateMutability": "view" },
+      { "name": "approve", "type": "function", "inputs": [{ "name": "to", "type": "address" }, { "name": "tokenId", "type": "uint256" }], "outputs": [], "stateMutability": "nonpayable" },
+      { "name": "getApproved", "type": "function", "inputs": [{ "name": "tokenId", "type": "uint256" }], "outputs": [{ "name": "", "type": "address" }], "stateMutability": "view" },
+      { "name": "setApprovalForAll", "type": "function", "inputs": [{ "name": "operator", "type": "address" }, { "name": "approved", "type": "bool" }], "outputs": [], "stateMutability": "nonpayable" },
+      { "name": "isApprovedForAll", "type": "function", "inputs": [{ "name": "owner", "type": "address" }, { "name": "operator", "type": "address" }], "outputs": [{ "name": "", "type": "bool" }], "stateMutability": "view" },
+      { "name": "transferFrom", "type": "function", "inputs": [{ "name": "from", "type": "address" }, { "name": "to", "type": "address" }, { "name": "tokenId", "type": "uint256" }], "outputs": [], "stateMutability": "nonpayable" },
+      { "name": "safeTransferFrom", "type": "function", "inputs": [{ "name": "from", "type": "address" }, { "name": "to", "type": "address" }, { "name": "tokenId", "type": "uint256" }], "outputs": [], "stateMutability": "nonpayable" },
+      { "name": "tokenURI", "type": "function", "inputs": [{ "name": "tokenId", "type": "uint256" }], "outputs": [{ "name": "", "type": "string" }], "stateMutability": "view" },
+      { "name": "name", "type": "function", "inputs": [], "outputs": [{ "name": "", "type": "string" }], "stateMutability": "view" },
+      { "name": "symbol", "type": "function", "inputs": [], "outputs": [{ "name": "", "type": "string" }], "stateMutability": "view" },
+    ]);
+    setAbiInput(sampleAbi);
+    toast.success(t("toast.erc721Loaded"));
+  }
+
+  function handleLoadErc1155() {
+    const sampleAbi = JSON.stringify([
+      { "name": "balanceOf", "type": "function", "inputs": [{ "name": "account", "type": "address" }, { "name": "id", "type": "uint256" }], "outputs": [{ "name": "", "type": "uint256" }], "stateMutability": "view" },
+      { "name": "balanceOfBatch", "type": "function", "inputs": [{ "name": "accounts", "type": "address[]" }, { "name": "ids", "type": "uint256[]" }], "outputs": [{ "name": "", "type": "uint256[]" }], "stateMutability": "view" },
+      { "name": "safeTransferFrom", "type": "function", "inputs": [{ "name": "from", "type": "address" }, { "name": "to", "type": "address" }, { "name": "id", "type": "uint256" }, { "name": "amount", "type": "uint256" }, { "name": "data", "type": "bytes" }], "outputs": [], "stateMutability": "nonpayable" },
+      { "name": "safeBatchTransferFrom", "type": "function", "inputs": [{ "name": "from", "type": "address" }, { "name": "to", "type": "address" }, { "name": "ids", "type": "uint256[]" }, { "name": "amounts", "type": "uint256[]" }, { "name": "data", "type": "bytes" }], "outputs": [], "stateMutability": "nonpayable" },
+      { "name": "uri", "type": "function", "inputs": [{ "name": "id", "type": "uint256" }], "outputs": [{ "name": "", "type": "string" }], "stateMutability": "view" },
+      { "name": "isApprovedForAll", "type": "function", "inputs": [{ "name": "account", "type": "address" }, { "name": "operator", "type": "address" }], "outputs": [{ "name": "", "type": "bool" }], "stateMutability": "view" },
+      { "name": "setApprovalForAll", "type": "function", "inputs": [{ "name": "operator", "type": "address" }, { "name": "approved", "type": "bool" }], "outputs": [], "stateMutability": "nonpayable" },
+    ]);
+    setAbiInput(sampleAbi);
+    toast.success(t("toast.erc1155Loaded"));
+  }
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="space-y-2">
@@ -135,6 +167,12 @@ export default function HomePage() {
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={handleLoadErc20} className="border-zinc-700 text-zinc-300">
                   ERC-20
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleLoadErc721} className="border-zinc-700 text-zinc-300">
+                  ERC-721
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleLoadErc1155} className="border-zinc-700 text-zinc-300">
+                  ERC-1155
                 </Button>
               </div>
             </TabsContent>

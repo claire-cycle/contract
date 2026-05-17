@@ -76,7 +76,7 @@ export interface CallResult {
 // AI Types
 // ---------------------------------------------------------------------------
 
-export type AIProvider = 'claude' | 'openai' | 'ollama';
+export type AIProvider = 'claude' | 'openai' | 'glm' | 'deepseek' | 'minimax' | 'mimo' | 'qwen' | 'ollama' | 'custom';
 
 export type AIConfidence = 'HIGH' | 'MEDIUM' | 'LOW';
 

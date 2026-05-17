@@ -13,11 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Settings, Key, Bot, Globe, Wallet, Eye, EyeOff, Languages, Plus, Trash2, Pencil } from "lucide-react";
+import { Settings, Key, Bot, Globe, Wallet, Eye, EyeOff, Languages, Plus, Trash2, Pencil, Sun, Moon, Monitor } from "lucide-react";
 import { useAiStore, type AiProvider } from "@/stores/ai-store";
 import { useChainStore, type CustomChain } from "@/stores/chain-store";
 import { useLocaleStore } from "@/stores/locale-store";
 import { useWalletStore } from "@/stores/wallet-store";
+import { useSettingsStore, type Theme } from "@/stores/settings-store";
 import { supportedChains, chainConfigMap, getAllChainConfigs } from "@/lib/web3";
 import type { Locale } from "@/lib/i18n";
 import { toast } from "sonner";
@@ -46,6 +47,7 @@ export default function SettingsPage() {
   } = useAiStore();
 
   const { customRpcs, customChains, setCustomRpc, removeCustomRpc, addCustomChain, removeCustomChain, updateCustomChain } = useChainStore();
+  const { theme, setTheme } = useSettingsStore();
 
   const [showApiKey, setShowApiKey] = useState(false);
   const [rpcInputs, setRpcInputs] = useState<Record<number, string>>(customRpcs);
@@ -211,6 +213,32 @@ export default function SettingsPage() {
               <SelectItem value="en" className="text-zinc-300 focus:bg-zinc-700 focus:text-white">English</SelectItem>
             </SelectContent>
           </Select>
+        </CardContent>
+      </Card>
+
+      {/* Theme */}
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            {theme === "dark" ? <Moon className="h-5 w-5" /> : theme === "light" ? <Sun className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}
+            {t("settings.theme")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            {([["dark", Moon, t("settings.themeDark")], ["light", Sun, t("settings.themeLight")], ["system", Monitor, t("settings.themeSystem")]] as const).map(([value, Icon, label]) => (
+              <Button
+                key={value}
+                variant={theme === value ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTheme(value as Theme)}
+                className={theme === value ? "bg-zinc-100 text-zinc-900" : "border-zinc-700 text-zinc-300"}
+              >
+                <Icon className="h-4 w-4 mr-1.5" />
+                {label}
+              </Button>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
