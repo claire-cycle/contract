@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# claude code local settings (contains user paths and permissions)
+.claude/
+
+# AI assistant instruction files (internal, not for distribution)
+CLAUDE.md
+AGENTS.md
