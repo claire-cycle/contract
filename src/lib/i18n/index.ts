@@ -125,6 +125,7 @@ export const en: Translations = {
   "analyzer.noHistoryDesc": "Analyzed contracts will appear here.",
   "analyzer.restore": "Restore",
   "analyzer.delete": "Delete",
+  "analyzer.exportAbi": "Export ABI",
 
   // Calldata builder
   "calldata.title": "Raw Calldata Builder",
@@ -235,6 +236,40 @@ export const en: Translations = {
   "toast.noDataToDecode": "No data to decode",
   "toast.invalidHex": "Invalid hex data format (must start with 0x)",
   "toast.dataTooShort": "Data too short to decode",
+  "toast.abiExported": "ABI JSON copied to clipboard",
+  "contract.favorite": "Favorite",
+  "contract.unfavorite": "Unfavorite",
+  "contract.favorites": "Favorites",
+  "contract.noFavorites": "No favorites yet",
+  "contract.noFavoritesDesc": "Starred contracts will appear here.",
+  "contract.loadFavorite": "Load",
+  "contract.contractName": "Contract Name",
+  "toast.favorited": "Contract added to favorites",
+  "toast.unfavorited": "Contract removed from favorites",
+
+  // Navigation
+  "nav.storage": "Storage Reader",
+
+  // Storage Reader
+  "storage.title": "Storage Reader",
+  "storage.description": "Read and inspect raw contract storage slots directly from the blockchain.",
+  "storage.address": "Contract Address",
+  "storage.slot": "Storage Slot",
+  "storage.read": "Read Storage",
+  "storage.reading": "Reading...",
+  "storage.value": "Storage Value",
+  "storage.interpretedAs": "Interpreted as",
+  "storage.commonSlots": "Common Slots",
+  "storage.rawHex": "Raw Hex",
+  "storage.asAddress": "As Address",
+  "storage.asUint256": "As Uint256",
+  "storage.asBool": "As Bool",
+
+  // Common file operations
+  "common.importFile": "Import File",
+  "common.exportFile": "Export File",
+  "toast.fileImported": "File imported",
+  "toast.fileExported": "File exported",
 };
 
 // Chinese translations
@@ -358,6 +393,7 @@ export const zh: Translations = {
   "analyzer.noHistoryDesc": "分析过的合约将显示在此处。",
   "analyzer.restore": "恢复",
   "analyzer.delete": "删除",
+  "analyzer.exportAbi": "导出 ABI",
 
   // Calldata builder
   "calldata.title": "原始 Calldata 构造器",
@@ -468,4 +504,38 @@ export const zh: Translations = {
   "toast.noDataToDecode": "没有数据可解码",
   "toast.invalidHex": "十六进制数据格式无效（必须以 0x 开头）",
   "toast.dataTooShort": "数据太短，无法解码",
+  "toast.abiExported": "ABI JSON 已复制到剪贴板",
+  "contract.favorite": "收藏",
+  "contract.unfavorite": "取消收藏",
+  "contract.favorites": "收藏夹",
+  "contract.noFavorites": "暂无收藏",
+  "contract.noFavoritesDesc": "收藏的合约将显示在此处。",
+  "contract.loadFavorite": "加载",
+  "contract.contractName": "合约名称",
+  "toast.favorited": "合约已添加到收藏",
+  "toast.unfavorited": "合约已从收藏移除",
+
+  // Navigation
+  "nav.storage": "存储读取器",
+
+  // Storage Reader
+  "storage.title": "存储读取器",
+  "storage.description": "直接从区块链读取和检查合约的原始存储槽。",
+  "storage.address": "合约地址",
+  "storage.slot": "存储槽",
+  "storage.read": "读取存储",
+  "storage.reading": "读取中...",
+  "storage.value": "存储值",
+  "storage.interpretedAs": "解释为",
+  "storage.commonSlots": "常用槽位",
+  "storage.rawHex": "原始十六进制",
+  "storage.asAddress": "作为地址",
+  "storage.asUint256": "作为 Uint256",
+  "storage.asBool": "作为布尔值",
+
+  // Common file operations
+  "common.importFile": "导入文件",
+  "common.exportFile": "导出文件",
+  "toast.fileImported": "文件已导入",
+  "toast.fileExported": "文件已导出",
 };

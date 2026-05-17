@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileCode, Upload, Link as LinkIcon, BookOpen, Eye, Send, ArrowLeft, AlertTriangle, Sparkles } from "lucide-react";
+import { FileCode, Upload, Link as LinkIcon, BookOpen, Eye, Send, ArrowLeft, AlertTriangle, Sparkles, Star, Trash2, FileUp } from "lucide-react";
 import { useContractStore } from "@/stores/contract-store";
 import { useChainStore } from "@/stores/chain-store";
 import { parseAbiMethods, getFunctionMethods, type AbiMethod } from "@/lib/abi/parser";
@@ -19,6 +19,8 @@ import { MethodForm } from "@/components/contract/method-form";
 import { useLocaleStore } from "@/stores/locale-store";
 import { useAiStore } from "@/stores/ai-store";
 import { AIGateway, type ParsedCallIntent } from "@/lib/ai";
+import { useFavoritesStore, type FavoriteContract } from "@/stores/favorites-store";
+import { openFile } from "@/lib/tauri";
 
 export default function HomePage() {
   const [address, setAddress] = useState("");
@@ -27,6 +29,7 @@ export default function HomePage() {
   const { selectedChainId } = useChainStore();
   const chainConfig = getChainConfig(selectedChainId);
   const { t } = useLocaleStore();
+  const { favorites, addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
 
   // If a contract is loaded, show the interaction view
   if (currentContract && abi.length > 0) {
@@ -155,14 +158,31 @@ export default function HomePage() {
               <TabsTrigger value="sample" className="data-[state=active]:bg-zinc-700">
                 <BookOpen className="h-3 w-3 mr-1" /> {t("home.sample")}
               </TabsTrigger>
+              <TabsTrigger value="favorites" className="data-[state=active]:bg-zinc-700">
+                <Star className="h-3 w-3 mr-1" /> {t("contract.favorites")}
+              </TabsTrigger>
             </TabsList>
-            <TabsContent value="paste" className="mt-3">
+            <TabsContent value="paste" className="mt-3 space-y-2">
               <Textarea
                 placeholder='[{"name": "balanceOf", "type": "function", ...}]'
                 value={abiInput}
                 onChange={(e) => setAbiInput(e.target.value)}
                 className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 font-mono text-xs min-h-[120px]"
               />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  const content = await openFile([{ name: "ABI JSON", extensions: ["json", "txt"] }]);
+                  if (content) {
+                    setAbiInput(content);
+                    toast.success(t("toast.fileImported"));
+                  }
+                }}
+                className="border-zinc-700 text-zinc-300"
+              >
+                <FileUp className="h-3 w-3 mr-1" /> {t("common.importFile")}
+              </Button>
             </TabsContent>
             <TabsContent value="sample" className="mt-3 space-y-2">
               <p className="text-zinc-400 text-sm">{t("home.loadSampleAbi")}</p>
@@ -177,6 +197,52 @@ export default function HomePage() {
                   ERC-1155
                 </Button>
               </div>
+            </TabsContent>
+            <TabsContent value="favorites" className="mt-3 space-y-2">
+              {favorites.length === 0 ? (
+                <div className="text-center py-6">
+                  <Star className="h-8 w-8 text-zinc-600 mx-auto mb-2" />
+                  <p className="text-zinc-400 text-sm">{t("contract.noFavorites")}</p>
+                  <p className="text-zinc-500 text-xs">{t("contract.noFavoritesDesc")}</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {favorites.map((fav) => (
+                    <div key={fav.id} className="flex items-center gap-2 bg-zinc-800/50 rounded-lg px-3 py-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-white text-sm font-medium">{fav.name || fav.address.slice(0, 10) + "..."}</span>
+                          <span className="text-zinc-500 text-xs">{getChainConfig(fav.chainId)?.name ?? `Chain ${fav.chainId}`}</span>
+                        </div>
+                        <p className="text-zinc-500 text-xs font-mono truncate">{fav.address}</p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setAddress(fav.address);
+                          setAbiInput(fav.abiJson);
+                          toast.success(t("toast.contractLoaded"));
+                        }}
+                        className="border-zinc-700 text-zinc-300 shrink-0 h-7"
+                      >
+                        {t("contract.loadFavorite")}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          removeFavorite(fav.id);
+                          toast.success(t("toast.unfavorited"));
+                        }}
+                        className="text-zinc-500 hover:text-red-400 shrink-0 h-7 w-7 p-0"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
 
@@ -200,6 +266,7 @@ function ContractInteractionView() {
   const chainConfig = getChainConfig(selectedChainId);
   const { t } = useLocaleStore();
   const aiStore = useAiStore();
+  const { isFavorite, addFavorite, removeFavorite } = useFavoritesStore();
   const [nlInput, setNlInput] = useState("");
   const [parsedIntent, setParsedIntent] = useState<ParsedCallIntent | null>(null);
   const [parsing, setParsing] = useState(false);
@@ -207,6 +274,25 @@ function ContractInteractionView() {
   if (!currentContract) return null;
 
   const { read, write } = getFunctionMethods(abi);
+
+  const handleToggleFavorite = () => {
+    if (isFavorite(currentContract.address, currentContract.chainId)) {
+      const fav = useFavoritesStore.getState().getFavorite(currentContract.address, currentContract.chainId);
+      if (fav) {
+        removeFavorite(fav.id);
+        toast.success(t("toast.unfavorited"));
+      }
+    } else {
+      addFavorite({
+        id: crypto.randomUUID(),
+        address: currentContract.address,
+        chainId: currentContract.chainId,
+        abiJson: JSON.stringify(abi),
+        timestamp: Date.now(),
+      });
+      toast.success(t("toast.favorited"));
+    }
+  };
 
   async function handleParseNL() {
     if (!nlInput.trim()) return;
@@ -258,11 +344,21 @@ function ContractInteractionView() {
               {currentContract.address}
             </p>
           </div>
-          {chainConfig && (
-            <Badge variant="outline" className="border-zinc-700 text-zinc-300 shrink-0">
-              {chainConfig.name}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2 shrink-0">
+            {chainConfig && (
+              <Badge variant="outline" className="border-zinc-700 text-zinc-300">
+                {chainConfig.name}
+              </Badge>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToggleFavorite}
+              className={`h-8 w-8 p-0 ${isFavorite(currentContract.address, currentContract.chainId) ? "text-yellow-400" : "text-zinc-500 hover:text-yellow-400"}`}
+            >
+              <Star className={`h-4 w-4 ${isFavorite(currentContract.address, currentContract.chainId) ? "fill-yellow-400" : ""}`} />
+            </Button>
+          </div>
         </div>
       </div>
 

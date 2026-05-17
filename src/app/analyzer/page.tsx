@@ -30,6 +30,8 @@ import {
 import { getPublicClient, getAllChainConfigs } from "@/lib/web3";
 import { BytecodeAnalyzer } from "@/lib/bytecode";
 import { AIGateway } from "@/lib/ai";
+import { selectorsToAbiJson } from "@/lib/abi/export";
+import { saveFile } from "@/lib/tauri";
 import { useChainStore } from "@/stores/chain-store";
 import { useAiStore } from "@/stores/ai-store";
 import { useWalletStore } from "@/stores/wallet-store";
@@ -916,7 +918,45 @@ export default function AnalyzerPage() {
           <TabsContent value="selectors" className="mt-4">
             <Card className="bg-zinc-900 border-zinc-800">
               <CardHeader>
-                <CardTitle className="text-white text-sm">{t("analyzer.detectedSelectors")}</CardTitle>
+                <CardTitle className="text-white text-sm flex items-center justify-between">
+                  {t("analyzer.detectedSelectors")}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const json = selectorsToAbiJson(analysis.selectors.map(s => ({
+                          selector: s.selector,
+                          signature: s.signature,
+                          confidence: s.confidence === "HIGH" ? 1 : s.confidence === "MEDIUM" ? 0.7 : 0.3,
+                          source: s.source,
+                        })));
+                        navigator.clipboard.writeText(json);
+                        toast.success(t("toast.abiExported"));
+                      }}
+                      className="border-zinc-700 text-zinc-300 h-7"
+                    >
+                      {t("analyzer.exportAbi")}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        const json = selectorsToAbiJson(analysis.selectors.map(s => ({
+                          selector: s.selector,
+                          signature: s.signature,
+                          confidence: s.confidence === "HIGH" ? 1 : s.confidence === "MEDIUM" ? 0.7 : 0.3,
+                          source: s.source,
+                        })));
+                        await saveFile(json, `abi-${analysis.selectors[0]?.selector || "export"}.json`);
+                        toast.success(t("toast.fileExported"));
+                      }}
+                      className="border-zinc-700 text-zinc-300 h-7"
+                    >
+                      {t("common.exportFile")}
+                    </Button>
+                  </div>
+                </CardTitle>
                 <CardDescription className="text-zinc-400 text-xs">
                   {t("analyzer.bytecodeSize")}: {analysis.bytecodeSize.toLocaleString()} {t("common.bytes")}
                   {analysis.contractType && ` | ${t("analyzer.contractType")}: ${analysis.contractType}`}
