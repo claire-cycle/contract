@@ -312,6 +312,13 @@ export const en: Translations = {
   "contract.simulationGas": "Estimated Gas",
   "contract.simulationReturnValue": "Return Value",
   "contract.simulationError": "Error",
+
+  // Command palette
+  "command.placeholder": "Type a command or search...",
+  "command.navigation": "Navigation",
+  "command.noResults": "No results found.",
+  "command.favorites": "Favorites",
+  "command.history": "Recent Transactions",
 };
 
 // Chinese translations
@@ -622,4 +629,11 @@ export const zh: Translations = {
   "contract.simulationGas": "预估 Gas",
   "contract.simulationReturnValue": "返回值",
   "contract.simulationError": "错误",
+
+  // Command palette
+  "command.placeholder": "输入命令或搜索...",
+  "command.navigation": "导航",
+  "command.noResults": "未找到结果。",
+  "command.favorites": "收藏",
+  "command.history": "近期交易",
 };
