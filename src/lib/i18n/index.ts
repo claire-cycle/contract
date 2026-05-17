@@ -158,6 +158,11 @@ export const en: Translations = {
   "history.method": "Method:",
   "history.value": "Value:",
   "history.justNow": "just now",
+  "history.blockNumber": "Block",
+  "history.nonce": "Nonce",
+  "history.gasUsed": "Gas Used",
+  "history.gasFee": "Gas Fee",
+  "history.showDetails": "Details",
 
   // Settings
   "settings.title": "Settings",
@@ -297,6 +302,16 @@ export const en: Translations = {
   "events.noEvents": "No events in ABI",
   "events.noEventsDesc": "The ABI does not contain any event definitions.",
   "toast.eventQueryFailed": "Event query failed",
+
+  // Simulation
+  "contract.simulate": "Simulate",
+  "contract.simulating": "Simulating...",
+  "contract.simulationResult": "Simulation Result",
+  "contract.simulationSuccess": "Simulation succeeded",
+  "contract.simulationFailed": "Simulation failed",
+  "contract.simulationGas": "Estimated Gas",
+  "contract.simulationReturnValue": "Return Value",
+  "contract.simulationError": "Error",
 };
 
 // Chinese translations
@@ -453,6 +468,11 @@ export const zh: Translations = {
   "history.method": "方法：",
   "history.value": "数值：",
   "history.justNow": "刚刚",
+  "history.blockNumber": "区块",
+  "history.nonce": "Nonce",
+  "history.gasUsed": "Gas 消耗",
+  "history.gasFee": "Gas 费用",
+  "history.showDetails": "详情",
 
   // Settings
   "settings.title": "设置",
@@ -592,4 +612,14 @@ export const zh: Translations = {
   "events.noEvents": "ABI 中无事件",
   "events.noEventsDesc": "ABI 中未包含任何事件定义。",
   "toast.eventQueryFailed": "事件查询失败",
+
+  // Simulation
+  "contract.simulate": "模拟",
+  "contract.simulating": "模拟中...",
+  "contract.simulationResult": "模拟结果",
+  "contract.simulationSuccess": "模拟成功",
+  "contract.simulationFailed": "模拟失败",
+  "contract.simulationGas": "预估 Gas",
+  "contract.simulationReturnValue": "返回值",
+  "contract.simulationError": "错误",
 };

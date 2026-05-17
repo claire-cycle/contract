@@ -13,6 +13,10 @@ export interface Transaction {
   timestamp: number;
   status: 'pending' | 'confirmed' | 'failed';
   gasUsed?: string;
+  gasPrice?: string;
+  effectiveGasPrice?: string;
+  nonce?: number;
+  blockNumber?: string;
 }
 
 interface HistoryState {

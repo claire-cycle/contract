@@ -33,6 +33,7 @@ import { useWalletStore } from "@/stores/wallet-store";
 import { useHistoryStore } from "@/stores/history-store";
 import { useAiStore } from "@/stores/ai-store";
 import { AIGateway, type AbiExplanation } from "@/lib/ai";
+import { simulateTransaction, type SimulationResult } from "@/lib/web3/simulation";
 import { createWalletClient, http, type Hash } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { getAllChainConfigs } from "@/lib/web3";
@@ -138,6 +139,32 @@ export function MethodForm({
       setDiagnosing(false);
     }
   }, [aiStore, contractAddress, method.name, chainId, t]);
+
+  // Simulation state
+  const [simResult, setSimResult] = useState<SimulationResult | null>(null);
+  const [simulating, setSimulating] = useState(false);
+
+  const handleSimulate = useCallback(async () => {
+    if (!calldata || !connected || !address) return;
+    setSimulating(true);
+    try {
+      const value = parseEthToWei(sendValue);
+      const result = await simulateTransaction(
+        chainId,
+        address,
+        contractAddress,
+        calldata,
+        value > 0n ? value.toString() : undefined,
+        getRpcUrl(),
+        getChainMeta(),
+      );
+      setSimResult(result);
+    } catch (err) {
+      setSimResult({ success: false, error: err instanceof Error ? err.message : "Simulation failed" });
+    } finally {
+      setSimulating(false);
+    }
+  }, [calldata, connected, address, chainId, contractAddress, sendValue, customRpcs, customChains]);
 
   function handleInputChange(name: string, value: string) {
     setInputs((prev) => ({ ...prev, [name]: value }));
@@ -354,11 +381,18 @@ export function MethodForm({
         updateTransaction(txId, {
           status: "confirmed",
           gasUsed: receipt.gasUsed.toString(),
+          effectiveGasPrice: receipt.effectiveGasPrice?.toString(),
+          blockNumber: receipt.blockNumber.toString(),
         });
         toast.success(t("contract.txConfirmed"));
       } else {
         setTxState("failed");
-        updateTransaction(txId, { status: "failed" });
+        updateTransaction(txId, {
+          status: "failed",
+          gasUsed: receipt.gasUsed.toString(),
+          effectiveGasPrice: receipt.effectiveGasPrice?.toString(),
+          blockNumber: receipt.blockNumber.toString(),
+        });
         toast.error(t("contract.txFailed"));
       }
     } catch (err) {
@@ -561,6 +595,20 @@ export function MethodForm({
                     )}
                     {t("contract.estimateGas")}
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSimulate}
+                    disabled={simulating || txState === "sending" || txState === "confirming"}
+                    className="border-violet-500/30 text-violet-400 hover:bg-violet-500/10 h-8"
+                  >
+                    {simulating ? (
+                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                    ) : (
+                      <Play className="h-3 w-3 mr-1" />
+                    )}
+                    {t("contract.simulate")}
+                  </Button>
                   {gasEstimate !== null && (
                     <span className="text-emerald-400 text-xs font-mono">
                       {t("contract.gasEstimate")}: {gasEstimate.toString()}
@@ -634,6 +682,44 @@ export function MethodForm({
                         Cancel
                       </Button>
                     </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Simulation result */}
+            {simResult && (
+              <div className={`rounded-md p-3 space-y-1 border text-xs ${
+                simResult.success
+                  ? "bg-violet-500/10 border-violet-500/30"
+                  : "bg-red-500/10 border-red-500/30"
+              }`}>
+                <div className="flex items-center gap-2">
+                  {simResult.success ? (
+                    <CheckCircle className="h-4 w-4 text-violet-400" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-red-400" />
+                  )}
+                  <span className={simResult.success ? "text-violet-300" : "text-red-300"}>
+                    {simResult.success ? t("contract.simulationSuccess") : t("contract.simulationFailed")}
+                  </span>
+                </div>
+                {simResult.gasUsed && (
+                  <div>
+                    <span className="text-zinc-500">{t("contract.simulationGas")}:</span>{" "}
+                    <span className="text-zinc-300 font-mono">{parseInt(simResult.gasUsed).toLocaleString()}</span>
+                  </div>
+                )}
+                {simResult.returnValue && (
+                  <div>
+                    <span className="text-zinc-500">{t("contract.simulationReturnValue")}:</span>{" "}
+                    <span className="text-zinc-300 font-mono break-all">{simResult.returnValue}</span>
+                  </div>
+                )}
+                {simResult.error && (
+                  <div>
+                    <span className="text-zinc-500">{t("contract.simulationError")}:</span>{" "}
+                    <span className="text-red-300 break-all">{simResult.error}</span>
                   </div>
                 )}
               </div>

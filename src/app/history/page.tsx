@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { History, Trash2, ExternalLink } from "lucide-react";
+import { History, Trash2, ExternalLink, ChevronDown, ChevronUp } from "lucide-react";
 import { useHistoryStore, type Transaction } from "@/stores/history-store";
 import { chainConfigMap, getAllChainConfigs } from "@/lib/web3";
+import { getAddressLabel } from "@/lib/web3/address-labels";
 import { useChainStore } from "@/stores/chain-store";
 import { useLocaleStore } from "@/stores/locale-store";
 
@@ -67,6 +68,7 @@ export default function HistoryPage() {
   const { customChains } = useChainStore();
   const { t } = useLocaleStore();
   const [showConfirmClear, setShowConfirmClear] = useState(false);
+  const [expandedTx, setExpandedTx] = useState<string | null>(null);
   const allChainConfigs = getAllChainConfigs(customChains);
 
   const handleClear = () => {
@@ -132,7 +134,7 @@ export default function HistoryPage() {
               const chainConfig = allChainConfigs[tx.chainId];
               return (
                 <Card key={tx.id} className="bg-zinc-900 border-zinc-800">
-                  <CardContent className="py-3">
+                  <CardContent className="py-3 space-y-2">
                     <div className="flex items-start justify-between gap-4">
                       {/* Left side: tx info */}
                       <div className="flex-1 min-w-0 space-y-2">
@@ -163,11 +165,21 @@ export default function HistoryPage() {
                           <span className="text-zinc-300 font-mono">
                             {truncateAddress(tx.from)}
                           </span>
+                          {getAddressLabel(tx.from, tx.chainId) && (
+                            <Badge variant="outline" className="border-blue-500/30 text-blue-400 text-[9px] h-4 px-1">
+                              {getAddressLabel(tx.from, tx.chainId)}
+                            </Badge>
+                          )}
                           <span className="text-zinc-500">&rarr;</span>
                           <span className="text-zinc-400">{t("history.to")}</span>
                           <span className="text-zinc-300 font-mono">
                             {truncateAddress(tx.to)}
                           </span>
+                          {getAddressLabel(tx.to, tx.chainId) && (
+                            <Badge variant="outline" className="border-blue-500/30 text-blue-400 text-[9px] h-4 px-1">
+                              {getAddressLabel(tx.to, tx.chainId)}
+                            </Badge>
+                          )}
                         </div>
 
                         {/* Bottom row: method + timestamp */}
@@ -195,16 +207,58 @@ export default function HistoryPage() {
                         </div>
                       </div>
 
-                      {/* Right side: explorer link */}
-                      <a
-                        href={getExplorerUrl(allChainConfigs, tx.chainId, tx.hash)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="shrink-0 text-zinc-400 hover:text-white transition-colors p-1"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
+                      {/* Right side: details toggle + explorer link */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setExpandedTx(expandedTx === tx.id ? null : tx.id)}
+                          className="text-zinc-400 hover:text-white h-7 w-7 p-0"
+                        >
+                          {expandedTx === tx.id ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                        </Button>
+                        <a
+                          href={getExplorerUrl(allChainConfigs, tx.chainId, tx.hash)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-zinc-400 hover:text-white transition-colors p-1"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </div>
                     </div>
+
+                    {/* Expanded details */}
+                    {expandedTx === tx.id && (
+                      <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg px-3 py-2 space-y-1.5 text-xs">
+                        {tx.blockNumber && (
+                          <div className="flex justify-between">
+                            <span className="text-zinc-500">{t("history.blockNumber")}</span>
+                            <span className="text-zinc-300 font-mono">{tx.blockNumber}</span>
+                          </div>
+                        )}
+                        {tx.gasUsed && (
+                          <div className="flex justify-between">
+                            <span className="text-zinc-500">{t("history.gasUsed")}</span>
+                            <span className="text-zinc-300 font-mono">{parseInt(tx.gasUsed).toLocaleString()}</span>
+                          </div>
+                        )}
+                        {tx.gasUsed && tx.effectiveGasPrice && (
+                          <div className="flex justify-between">
+                            <span className="text-zinc-500">{t("history.gasFee")}</span>
+                            <span className="text-zinc-300 font-mono">
+                              {(BigInt(tx.gasUsed) * BigInt(tx.effectiveGasPrice) / 10n ** 12n).toString()} Gwei
+                            </span>
+                          </div>
+                        )}
+                        {tx.nonce !== undefined && (
+                          <div className="flex justify-between">
+                            <span className="text-zinc-500">{t("history.nonce")}</span>
+                            <span className="text-zinc-300 font-mono">{tx.nonce}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               );
