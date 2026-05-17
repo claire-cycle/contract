@@ -7,11 +7,14 @@ export function isTauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
+async function runtimeImport<T = any>(moduleName: string): Promise<T> {
+  return new Function("m", "return import(m)")(moduleName) as Promise<T>;
+}
+
 export async function writeClipboard(text: string): Promise<void> {
   if (isTauri()) {
     try {
-      // @ts-ignore - Tauri plugin loaded at runtime
-      const { writeText } = await import("@tauri-apps/plugin-clipboard-manager");
+      const { writeText } = await runtimeImport<{ writeText: (text: string) => Promise<void> }>("@tauri-apps/plugin-clipboard-manager");
       await writeText(text);
       return;
     } catch {
@@ -24,12 +27,10 @@ export async function writeClipboard(text: string): Promise<void> {
 export async function openFile(filters?: { name: string; extensions: string[] }[]): Promise<string | null> {
   if (isTauri()) {
     try {
-      // @ts-ignore - Tauri plugin loaded at runtime
-      const { open } = await import("@tauri-apps/plugin-dialog");
+      const { open } = await runtimeImport<{ open: (options: unknown) => Promise<string | null> }>("@tauri-apps/plugin-dialog");
       const result = await open({ filters, multiple: false });
       if (result && typeof result === "string") {
-        // @ts-ignore - Tauri plugin loaded at runtime
-        const { readFile } = await import("@tauri-apps/plugin-fs");
+        const { readFile } = await runtimeImport<{ readFile: (path: string) => Promise<Uint8Array> }>("@tauri-apps/plugin-fs");
         const bytes = await readFile(result);
         return new TextDecoder().decode(bytes);
       }
@@ -60,10 +61,8 @@ export async function openFile(filters?: { name: string; extensions: string[] }[
 export async function saveFile(content: string, name: string): Promise<void> {
   if (isTauri()) {
     try {
-      // @ts-ignore - Tauri plugin loaded at runtime
-      const { save } = await import("@tauri-apps/plugin-dialog");
-      // @ts-ignore - Tauri plugin loaded at runtime
-      const { writeFile } = await import("@tauri-apps/plugin-fs");
+      const { save } = await runtimeImport<{ save: (options: unknown) => Promise<string | null> }>("@tauri-apps/plugin-dialog");
+      const { writeFile } = await runtimeImport<{ writeFile: (path: string, data: Uint8Array) => Promise<void> }>("@tauri-apps/plugin-fs");
       const path = await save({ defaultPath: name });
       if (path) {
         const encoder = new TextEncoder();
