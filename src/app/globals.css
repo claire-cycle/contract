@@ -128,3 +128,64 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  html:not(.dark) .bg-zinc-950 {
+    background-color: oklch(0.985 0 0) !important;
+  }
+  html:not(.dark) .bg-zinc-900 {
+    background-color: oklch(1 0 0) !important;
+  }
+  html:not(.dark) .bg-zinc-800,
+  html:not(.dark) .bg-zinc-800\/30,
+  html:not(.dark) .bg-zinc-800\/40,
+  html:not(.dark) .bg-zinc-800\/50,
+  html:not(.dark) .bg-zinc-800\/60 {
+    background-color: oklch(0.97 0 0) !important;
+  }
+  html:not(.dark) .bg-zinc-700,
+  html:not(.dark) .bg-zinc-700\/50 {
+    background-color: oklch(0.922 0 0) !important;
+  }
+  html:not(.dark) .bg-zinc-600 {
+    background-color: oklch(0.708 0 0) !important;
+  }
+
+  html:not(.dark) .text-white {
+    color: oklch(0.145 0 0) !important;
+  }
+  html:not(.dark) .text-zinc-200,
+  html:not(.dark) .text-zinc-300 {
+    color: oklch(0.269 0 0) !important;
+  }
+  html:not(.dark) .text-zinc-400 {
+    color: oklch(0.439 0 0) !important;
+  }
+  html:not(.dark) .text-zinc-500 {
+    color: oklch(0.556 0 0) !important;
+  }
+  html:not(.dark) .text-zinc-600 {
+    color: oklch(0.708 0 0) !important;
+  }
+  html:not(.dark) .placeholder\:text-zinc-500::placeholder {
+    color: oklch(0.556 0 0) !important;
+  }
+
+  html:not(.dark) .border-zinc-900\/50,
+  html:not(.dark) .border-zinc-800,
+  html:not(.dark) .border-zinc-800\/50,
+  html:not(.dark) .border-zinc-700,
+  html:not(.dark) .border-zinc-700\/50,
+  html:not(.dark) .border-zinc-600 {
+    border-color: oklch(0.88 0 0) !important;
+  }
+
+  html:not(.dark) .ring-foreground\/10 {
+    --tw-ring-color: oklch(0.145 0 0 / 12%) !important;
+  }
+
+  html:not(.dark) pre.bg-zinc-950,
+  html:not(.dark) .font-mono.bg-zinc-950 {
+    background-color: oklch(0.97 0 0) !important;
+  }
+}
